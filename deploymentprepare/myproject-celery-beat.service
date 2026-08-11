@@ -1,0 +1,16 @@
+[Unit]
+Description=MyProject Celery Beat Scheduler
+After=network.target mysql.service redis.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/MyProject
+EnvironmentFile=/etc/myproject.env
+ExecStart=/usr/local/bin/celery -A config.celery_app beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

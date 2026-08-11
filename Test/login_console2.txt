@@ -1,0 +1,110 @@
+﻿34 objects imported automatically (use -v 2 for details).
+
+.\Myprojectvenv\Scripts\python.exe : Traceback (most recent call last):
+所在位置 行:1 字符: 40
++ ... _shell.py | .\Myprojectvenv\Scripts\python.exe manage.py shell 2>&1 | ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::Str 
+   ing) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\traitlets\traitle
+ts.py", line 652, in get
+    value = obj._trait_values[self.name]
+            ~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'ipython_dir'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\djangoproject\MyProject\manage.py", line 22, in <module>
+    main()
+    ~~~~^^
+  File "C:\djangoproject\MyProject\manage.py", line 18, in main
+    execute_from_command_line(sys.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\django\core\manag
+ement\__init__.py", line 443, in execute_from_command_line
+    utility.execute()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\django\core\manag
+ement\__init__.py", line 437, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\django\core\manag
+ement\base.py", line 422, in run_from_argv
+    self.execute(*args, **cmd_options)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\django\core\manag
+ement\base.py", line 466, in execute
+    output = self.handle(*args, **options)
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\django\core\manag
+ement\commands\shell.py", line 280, in handle
+    return getattr(self, shell)(options)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\django\core\manag
+ement\commands\shell.py", line 60, in ipython
+    start_ipython(argv=[], user_ns=self.get_namespace(**options))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\IPython\__init__.
+py", line 127, in start_ipython
+    return launch_new_instance(argv=argv, **kwargs)
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\traitlets\config\
+application.py", line 1079, in launch_instance
+    app.initialize(argv)
+    ~~~~~~~~~~~~~~^^^^^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\traitlets\config\
+application.py", line 117, in inner
+    return method(app, *args, **kwargs)
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\IPython\terminal\
+ipapp.py", line 276, in initialize
+    super().initialize(argv)
+    ~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\traitlets\config\
+application.py", line 117, in inner
+    return method(app, *args, **kwargs)
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\IPython\core\appl
+ication.py", line 487, in initialize
+    self.init_profile_dir()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\IPython\core\appl
+ication.py", line 391, in init_profile_dir
+    p = ProfileDir.find_profile_dir_by_name(self.ipython_dir, self.profile, self.con
+fig)
+                                            ^^^^^^^^^^^^^^^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\traitlets\traitle
+ts.py", line 705, in __get__
+    return self.get(obj, cls)  # type:ignore[return-value]
+           ~~~~~~~~^^^^^^^^^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\traitlets\traitle
+ts.py", line 655, in get
+    default = obj.trait_defaults(self.name)
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\traitlets\traitle
+ts.py", line 1904, in trait_defaults
+    return self._get_trait_default_generator(names[0])(self)  # type:ignore[no-any-r
+eturn]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\traitlets\traitle
+ts.py", line 1263, in __call__
+    return self.func(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\IPython\core\appl
+ication.py", line 206, in _ipython_dir_default
+    d = get_ipython_dir()
+  File "C:\djangoproject\MyProject\Myprojectvenv\Lib\site-packages\IPython\paths.py"
+, line 71, in get_ipython_dir
+    os.makedirs(ipdir, exist_ok=True)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 236, in makedirs
+PermissionError: [WinError 5] 拒绝访问。: 'C:\\Users\\bxbei\\.ipython'
+
+If you suspect this is an IPython 9.16.1 bug, please report it at:
+    https://github.com/ipython/ipython/issues
+or send an email to the mailing list at ipython-dev@python.org
+
+You can print a more detailed traceback right now with "%tb", or use "%debug"
+to interactively debug it.
+
+Extra-detailed tracebacks for bug-reporting purposes can be enabled via:
+    c.Application.verbose_crash=True
+

@@ -1,0 +1,9 @@
+﻿=== 测试系统管理接口（不带斜杠）===
+  [OK] 200: {"code":200,"msg":"success","success":true,"data":[{"id":1,"name":"仪表盘","parent":null,"menu_type":1,"path":"/dashboard","component":"dashboard/index","redirect":"","icon":"Odometer","permission":"","s
+  [OK] 200: {"code":200,"msg":"success","success":true,"data":[{"id":2,"name":"普通用户","code":"user","remark":"基础查看权限","status":true,"created_at":"2026-08-10T16:01:36.957264+08:00"},{"id":1,"name":"系统管理员","code":"a
+  [OK] 200: {"code":200,"msg":"success","success":true,"data":[{"id":1055,"username":"admin","method":"GET","path":"/api/system/roles","query":"","status_code":200,"ip":"127.0.0.1","duration_ms":19,"created_at":"
+  [OK] 200: {"code":200,"msg":"success","success":true,"data":[{"id":20,"username":"admin","ip":"127.0.0.1","location":"","browser":"","result":1,"message":"登录成功","created_at":"2026-08-11T08:19:09.601173+08:00"},
+  [OK] 200: {"code":200,"msg":"success","success":true,"data":{"menus":[{"id":1,"name":"仪表盘","path":"/dashboard","component":"dashboard/index","redirect":"","icon":"Odometer","is_visible":true,"is_external":false
+
+=== 测试 AI 接口（不带斜杠）===
+  [OK] 200: {"code":200,"msg":"success","success":true,"data":[]}

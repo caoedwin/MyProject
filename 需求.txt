@@ -1,0 +1,33 @@
+我现在要用python3.14.7+django6.1+mysql+vue的框架开发一个前后端分离的新系统，django项目已经创建好了C:\djangoproject\MyProject，虚拟环境是C:\djangoproject\MyProject\Myprojectvenv\Scripts，mysql是DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'myproject',
+        'USER': 'edwin',
+        'PASSWORD': 'DCT@2019',
+        'HOST': '127.0.0.1',
+        'PORT': '3306'
+    },redis也装好的，，需要定时任务，类似于CELERY_BROKER_URL = 'redis://:DCT2019@localhost:6379/1'
+#Redis 16个库任你选,同一台机器启动多个celery，BROKER_URL必须不同才行。Redus在Celery体系中充当消息中间件（message broker）作用，如果都放在一个redis库中，当两个celery都启动时，读取任务会将另一个项目的任务也读取过来，直接报错。
+CELERY_RESULT_BACKEND = 'redis://:DCT2019@localhost:6379/2'，
+# Redis 业务配置（用于库存预扣、分布式锁、幂等缓存）
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
+REDIS_PASSWORD = 'DCT2019'   # 与 channel 层一致
+REDIS_DB_BUSINESS = 3        # 使用独立的 db，不与 celery/channels 冲突
+
+好现在我们需要先做一个基本框架，然后再开开发对应的其他app。
+先船舰一个用于登陆的app，可以叫app01.
+我的前后端分离的框架的基本要求是，
+1我要可以注册登陆系统，登陆时有记住密码的功能
+2我的菜单栏是可以调整位置到上方菜单栏或者左侧菜单栏，且可以收起。
+3要有良好的类似于RBAC的权限控制可以用三方库django-guardian
+4不同的用户登陆系统，只能看到自己有权限的菜单
+5要有日志记录功能
+6要是定时任务和异步任务的功能
+7要有消息推送功能
+8要集成AI功能
+9要有友好的后台维护功能。
+10jwt要有token验证
+暂时想到这么多，后续对框架有新需求再补充。
+
+另外django6.1需要mysql8.4，但是目前我是使用的8.0,由于我有django2.1.7+mysql8.0的项目，担心升级mysql后影响以前的项目，所以不升级，也许想降级django版本，期望再不影响旧版mysql的状况下，为我的新项目创建一个全新的、独立的 MySQL 8.4 数据库环境

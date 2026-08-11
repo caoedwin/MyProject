@@ -1,0 +1,39 @@
+# Django 核心
+Django==6.1
+
+# DRF 及扩展
+djangorestframework>=3.16.0
+djangorestframework-simplejwt>=5.5.0
+django-cors-headers>=4.7.0
+django-filter>=25.1
+drf-spectacular>=0.28.0
+
+# 数据库驱动（2.2.8 提供 cp314 wheel，避免源码编译）
+mysqlclient==2.2.8
+
+# 权限
+django-guardian>=2.4.0
+
+# Redis
+django-redis>=5.4.0
+redis>=5.2.0
+
+# Celery 异步任务
+celery>=5.5.0
+django-celery-beat>=2.8.0
+django-celery-results>=2.6.0
+
+# Channels 消息推送
+channels>=4.2.0
+channels-redis>=4.2.0
+daphne>=4.1.0
+
+# 日志/工具
+python-json-logger>=3.3.0
+ipython>=9.0.0
+
+# AI 集成
+openai>=1.60.0
+
+# 前端构建后静态文件处理
+whitenoise>=6.9.0

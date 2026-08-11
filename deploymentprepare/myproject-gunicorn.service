@@ -1,0 +1,20 @@
+[Unit]
+Description=MyProject Django Gunicorn
+After=network.target mysql.service redis.service
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/MyProject
+EnvironmentFile=/etc/myproject.env
+ExecStart=/usr/local/bin/gunicorn -c /opt/MyProject/deploymentprepare/gunicorn.conf.py config.wsgi
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGINT
+TimeoutStopSec=30
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

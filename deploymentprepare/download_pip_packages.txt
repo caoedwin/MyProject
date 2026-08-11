@@ -1,0 +1,26 @@
+# ============================================================
+# 离线 pip 依赖下载脚本
+# 在有外网的机器上运行, 下载所有 whl 包到 pip_packages/
+# 然后将 pip_packages/ 传输到离线服务器
+# ============================================================
+
+# Windows PowerShell:
+#   $env:PIP_NO_INDEX='0'
+#   pip download -r requirements.txt -d pip_packages --python-version 3.14 --platform manylinux2014_x86_64 --only-binary=:all:
+
+# Linux bash:
+#   #!/bin/bash
+#   pip download -r requirements.txt \
+#       -d pip_packages \
+#       --python-version 3.14 \
+#       --platform manylinux2014_x86_64 \
+#       --only-binary=:all: \
+#       --implementation cp \
+#       --abi cp314
+
+# 下载完成后打包:
+#   tar czf pip_packages.tar.gz pip_packages/
+
+# 传输到服务器后:
+#   tar xzf pip_packages.tar.gz
+#   pip install --no-index --find-links=pip_packages/ -r requirements.txt

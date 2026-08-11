@@ -1,0 +1,55 @@
+# ============================================================
+# MyProject Windows 生产环境 Docker Compose
+# 用途：在 Windows 服务器上用 Docker 一键启动 MySQL + Redis
+# 使用：docker compose -f docker-compose.prod.yml up -d
+# ============================================================
+services:
+  mysql84:
+    image: mysql:8.4
+    container_name: myproject_mysql84
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "DCT@2019"
+      MYSQL_DATABASE: "myproject"
+      MYSQL_USER: "edwin"
+      MYSQL_PASSWORD: "DCT@2019"
+      TZ: "Asia/Shanghai"
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --mysql-native-password=ON
+      --max_connections=200
+      --innodb_buffer_pool_size=512M
+    volumes:
+      - mysql84_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pDCT@2019"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    # Redis 7.x for Windows (通过 Docker)
+    # 注意：WebSocket 需要 Redis 6.0+ 以支持 HELLO 命令
+    image: redis:7-alpine
+    container_name: myproject_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass DCT@2019 --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "DCT@2019", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql84_data:
+    name: myproject_mysql84_data
+  redis_data:
+    name: myproject_redis_data

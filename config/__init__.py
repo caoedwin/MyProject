@@ -1,0 +1,4 @@
+"""项目包初始化 - 启动时加载 Celery"""
+from .celery import app as celery_app
+
+__all__ = ('celery_app',)
