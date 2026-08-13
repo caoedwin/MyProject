@@ -93,8 +93,8 @@ watch(() => route.path, (path) => {
 }
 
 .layout-header {
-  background: #fff;
-  border-bottom: 1px solid #e6e6e6;
+  background: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color-lighter);
   padding: 0 15px;
   height: 50px;
   line-height: 50px;
@@ -104,7 +104,7 @@ watch(() => route.path, (path) => {
 
 .layout-main {
   padding: 16px;
-  background: #f0f2f5;
+  background: var(--el-bg-color-page);
   overflow-y: auto;
 }
 
@@ -113,5 +113,12 @@ watch(() => route.path, (path) => {
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
+}
+</style>
+
+<style lang="scss">
+/* 夜间模式覆盖（非 scoped，确保选择器不受 Vue 作用域影响） */
+html.dark .layout-aside {
+  background: #1d1e1f;
 }
 </style>

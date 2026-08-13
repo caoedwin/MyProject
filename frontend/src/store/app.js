@@ -7,6 +7,8 @@ export const useAppStore = defineStore('app', () => {
   const menuMode = ref(localStorage.getItem('menu_mode') || 'side')
   // 菜单是否收起
   const menuCollapsed = ref(localStorage.getItem('menu_collapsed') === 'true')
+  // 夜间模式
+  const isDark = ref(localStorage.getItem('theme') === 'dark')
 
   function setMenuMode(mode) {
     menuMode.value = mode
@@ -23,5 +25,11 @@ export const useAppStore = defineStore('app', () => {
     localStorage.setItem('menu_collapsed', String(val))
   }
 
-  return { menuMode, menuCollapsed, setMenuMode, toggleCollapse, setCollapsed }
+  function toggleTheme() {
+    isDark.value = !isDark.value
+    localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+    document.documentElement.classList.toggle('dark', isDark.value)
+  }
+
+  return { menuMode, menuCollapsed, isDark, setMenuMode, toggleCollapse, setCollapsed, toggleTheme }
 })

@@ -10,8 +10,8 @@
         :default-active="activeMenu"
         :collapse="collapsed"
         :collapse-transition="false"
-        background-color="#304156"
-        text-color="#bfcbd9"
+        :background-color="menuBgColor"
+        :text-color="menuTextColor"
         active-text-color="#409EFF"
         :unique-opened="true"
         router
@@ -28,6 +28,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePermissionStore } from '@/store/permission'
+import { useAppStore } from '@/store/app'
 import SidebarItem from './SidebarItem.vue'
 
 const props = defineProps({
@@ -37,8 +38,13 @@ const props = defineProps({
 
 const route = useRoute()
 const permissionStore = usePermissionStore()
+const appStore = useAppStore()
 
 const activeMenu = computed(() => route.path)
+
+// 菜单颜色随主题切换
+const menuBgColor = computed(() => appStore.isDark ? '#1d1e1f' : '#304156')
+const menuTextColor = computed(() => appStore.isDark ? '#a3a6ad' : '#bfcbd9')
 
 const menuItems = computed(() => {
   if (props.parentPath) {
@@ -82,5 +88,12 @@ const menuItems = computed(() => {
 
 :deep(.el-menu) {
   border-right: none;
+}
+</style>
+
+<style lang="scss">
+/* 夜间模式覆盖（非 scoped） */
+html.dark .logo {
+  background: #141414;
 }
 </style>

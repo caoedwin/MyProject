@@ -14,7 +14,7 @@
         mode="horizontal"
         @select="handleTopMenuSelect"
         background-color="transparent"
-        text-color="#303133"
+        :text-color="appStore.isDark ? '#e5eaf3' : '#303133'"
         active-text-color="#409EFF"
       >
         <el-menu-item
@@ -52,6 +52,14 @@
       <!-- 全屏 -->
       <el-tooltip content="全屏" placement="bottom">
         <el-icon class="action-item" @click="toggleFullscreen"><FullScreen /></el-icon>
+      </el-tooltip>
+
+      <!-- 日夜切换 -->
+      <el-tooltip :content="appStore.isDark ? '切换日间模式' : '切换夜间模式'" placement="bottom">
+        <el-icon class="action-item" @click="appStore.toggleTheme()">
+          <Sunny v-if="appStore.isDark" />
+          <Moon v-else />
+        </el-icon>
       </el-tooltip>
 
       <!-- 用户菜单 -->
@@ -97,7 +105,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Fold, Expand, Operation, Bell, FullScreen, ArrowDown,
-  User, Lock, SwitchButton,
+  User, Lock, SwitchButton, Sunny, Moon,
 } from '@element-plus/icons-vue'
 import { useAppStore } from '@/store/app'
 import { useUserStore } from '@/store/user'
@@ -222,7 +230,7 @@ onUnmounted(() => {
 .trigger {
   font-size: 20px;
   cursor: pointer;
-  color: #303133;
+  color: var(--el-text-color-primary);
 }
 
 .breadcrumb {
@@ -238,7 +246,7 @@ onUnmounted(() => {
 .action-item {
   font-size: 18px;
   cursor: pointer;
-  color: #303133;
+  color: var(--el-text-color-primary);
   &:hover {
     color: #409eff;
   }
@@ -251,7 +259,7 @@ onUnmounted(() => {
   cursor: pointer;
   .username {
     font-size: 14px;
-    color: #303133;
+    color: var(--el-text-color-primary);
   }
 }
 

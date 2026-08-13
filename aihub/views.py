@@ -79,6 +79,9 @@ class ChatViewSet(viewsets.ModelViewSet):
 
         try:
             result = ai_client.chat(messages)
+        except RuntimeError as e:
+            # 客户端封装层已提供友好中文提示，直接透传
+            return Response(fail(msg=str(e), code=503))
         except Exception as e:
             return Response(fail(msg=f'AI 调用失败: {e}', code=503))
 

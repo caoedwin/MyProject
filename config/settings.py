@@ -281,6 +281,8 @@ AI_PROVIDER = 'openai'  # openai / anthropic / custom
 AI_API_KEY = os.environ.get('AI_API_KEY', '')
 AI_BASE_URL = os.environ.get('AI_BASE_URL', 'https://api.openai.com/v1')
 AI_MODEL = os.environ.get('AI_MODEL', 'gpt-4o-mini')
+AI_TIMEOUT = float(os.environ.get('AI_TIMEOUT', '60'))  # 连接 + 读取总超时（秒）
+AI_MAX_RETRIES = int(os.environ.get('AI_MAX_RETRIES', '1'))
 
 # ============================================================
 # 日志配置
