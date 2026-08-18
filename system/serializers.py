@@ -33,18 +33,31 @@ class MenuTreeSerializer(serializers.ModelSerializer):
 
     def get_children(self, obj):
         children = obj.children.filter(status=True, is_visible=True).order_by('sort', 'id')
-        return MenuTreeSerializer(children, many=True).data
+        # RBAC 过滤：只返回用户有权访问的子菜单
+        allowed_ids = self.context.get('allowed_ids')
+        if allowed_ids is not None:
+            children = children.filter(id__in=allowed_ids)
+        return MenuTreeSerializer(children, many=True, context=self.context).data
 
 
 class RoleSerializer(serializers.ModelSerializer):
     menu_ids = serializers.PrimaryKeyRelatedField(
         source='menus', many=True, queryset=Menu.objects.all(),
-        required=False, write_only=True
+        required=False
     )
 
     class Meta:
         model = Role
         fields = ['id', 'name', 'code', 'menu_ids', 'remark', 'status', 'created_at']
+
+    def validate(self, attrs):
+        """自动补全祖先菜单：选子菜单时，父级目录自动加入"""
+        if 'menus' in attrs:
+            from system.models import Menu
+            menu_ids = [m.id for m in attrs['menus']]
+            expanded = Menu.expand_ancestors(menu_ids)
+            attrs['menus'] = Menu.objects.filter(id__in=expanded)
+        return attrs
 
 
 class UserRoleSerializer(serializers.ModelSerializer):

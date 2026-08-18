@@ -2,7 +2,7 @@
   <!-- 渲染单个菜单项：含子菜单则用 sub-menu，否则用 menu-item -->
   <el-sub-menu
     v-if="item.children && item.children.length > 0"
-    :index="resolvePath(item.path)"
+    :index="resolvePath(item.path) || String(item.id)"
   >
     <template #title>
       <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>

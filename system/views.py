@@ -29,6 +29,12 @@ class MenuViewSet(viewsets.ModelViewSet):
         keyword = self.request.query_params.get('keyword')
         if parent_id:
             qs = qs.filter(parent_id=parent_id)
+        elif self.request.query_params.get('leaf_only'):
+            # 角色表单用：只返回叶子节点（无子菜单的菜单项），父级目录由后端自动补全
+            qs = qs.filter(
+                menu_type__in=[Menu.MenuType.MENU, Menu.MenuType.BUTTON],
+                children__isnull=True
+            )
         elif not self.request.query_params.get('all'):
             qs = qs.filter(parent__isnull=True)
         if keyword:
@@ -85,9 +91,14 @@ class UserMenuView(mixins.ListModelMixin, viewsets.GenericViewSet):
             menu_type__in=[Menu.MenuType.DIRECTORY, Menu.MenuType.MENU],
             parent__isnull=True,
         ).order_by('sort', 'id')
+        # 用户有权访问的所有菜单 ID（用于 RBAC 子级过滤）
+        allowed_ids = set(menus.values_list('id', flat=True))
         perms = get_user_permissions(user)
         data = {
-            'menus': MenuTreeSerializer(route_menus, many=True).data,
+            'menus': MenuTreeSerializer(
+                route_menus, many=True,
+                context={'allowed_ids': allowed_ids}
+            ).data,
             'permissions': list(perms),
         }
         return Response(ok(data))

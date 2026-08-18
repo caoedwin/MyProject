@@ -100,6 +100,7 @@ watch(() => route.path, (path) => {
   line-height: 50px;
   display: flex;
   align-items: center;
+  overflow: visible;
 }
 
 .layout-main {

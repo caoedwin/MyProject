@@ -1,11 +1,63 @@
 """系统管理后台注册 - RBAC + 用户 + 日志"""
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import Permission
+from django.db.models import Q
 from django.utils.html import format_html
 
 from app01.models import User
 from system.models import Menu, Role, UserRole, OperationLog, LoginLog
 from aihub.models import ChatSession, ChatMessage
+
+
+class RoleAdminForm(forms.ModelForm):
+    """角色管理表单：菜单选择只显示叶子节点，标签显示完整路径"""
+    menus = forms.ModelMultipleChoiceField(
+        queryset=Menu.objects.none(),
+        required=False,
+        label='关联菜单',
+        widget=admin.widgets.FilteredSelectMultiple('菜单', False),
+    )
+    permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.all(), required=False,
+        label='关联权限',
+        widget=admin.widgets.FilteredSelectMultiple('权限', False),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # 叶子菜单：menu_type=1(MENU) 且无子菜单，按完整路径排序
+        leaf_menus = Menu.objects.filter(
+            menu_type=Menu.MenuType.MENU, status=True,
+        ).exclude(children__isnull=False).select_related('parent__parent__parent')
+        # 构建带路径的菜单列表，重写 label 为完整路径
+        self.fields['menus'].choices = self._build_choices(leaf_menus)
+        self.fields['menus'].queryset = leaf_menus
+
+    def _build_choices(self, menus):
+        """为每个叶子菜单生成 "父级 > 子级" 格式的标签"""
+        choices = []
+        for menu in menus:
+            path_parts = self._get_path(menu)
+            label = ' > '.join(path_parts)
+            choices.append((menu.pk, label))
+        # 按路径排序
+        choices.sort(key=lambda x: x[1])
+        return choices
+
+    def _get_path(self, menu):
+        """递归获取菜单的完整路径（从根到叶）"""
+        parts = []
+        current = menu
+        while current:
+            parts.insert(0, current.name)
+            current = current.parent
+        return parts
+
+    class Meta:
+        model = Role
+        fields = '__all__'
 
 
 @admin.register(User)
@@ -33,10 +85,10 @@ class MenuAdmin(admin.ModelAdmin):
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
+    form = RoleAdminForm
     list_display = ['name', 'code', 'status', 'created_at']
     list_filter = ['status']
     search_fields = ['name', 'code']
-    filter_horizontal = ['menus', 'permissions']
 
 
 @admin.register(UserRole)

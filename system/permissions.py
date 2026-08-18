@@ -53,6 +53,11 @@ def get_user_menus(user):
         # 通过角色关联菜单
         role_ids = user.user_roles.values_list('role_id', flat=True)
         qs = Menu.objects.filter(status=True, roles__id__in=role_ids).distinct()
+        # 自动补全祖先菜单：选了子菜单，父级自动可见
+        menu_ids = set(qs.values_list('id', flat=True))
+        expanded_ids = Menu.expand_ancestors(menu_ids)
+        if expanded_ids != menu_ids:
+            qs = Menu.objects.filter(status=True, id__in=expanded_ids)
     return qs
 
 

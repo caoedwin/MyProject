@@ -102,17 +102,18 @@ onMounted(fetchStats)
 .stat-value {
   font-size: 24px;
   font-weight: 600;
-  color: #303133;
+  color: var(--el-text-color-primary);
 }
 
 .stat-title {
   font-size: 13px;
-  color: #909399;
+  color: var(--el-text-color-regular);
   margin-top: 4px;
 }
 
 .welcome p {
   margin-bottom: 10px;
   line-height: 1.8;
+  color: var(--el-text-color-primary);
 }
 </style>

@@ -44,6 +44,26 @@ class Menu(models.Model):
     def __str__(self):
         return f'{self.name} ({self.get_menu_type_display()})'
 
+    def get_ancestor_ids(self):
+        """返回所有祖先菜单 ID 列表（含自身）"""
+        ids = [self.id]
+        parent = self.parent
+        while parent:
+            ids.append(parent.id)
+            parent = parent.parent
+        return ids
+
+    @staticmethod
+    def expand_ancestors(menu_ids):
+        """给定一组菜单 ID，自动补全所有祖先菜单 ID"""
+        if not menu_ids:
+            return set()
+        result = set(menu_ids)
+        menus = Menu.objects.filter(id__in=menu_ids).select_related('parent__parent__parent')
+        for menu in menus:
+            result.update(menu.get_ancestor_ids())
+        return result
+
 
 class Role(models.Model):
     """角色 - 对应 Django auth Group 的业务封装，挂载菜单/权限"""

@@ -318,7 +318,7 @@ LOGGING = {
         },
         'django_file': {
             'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
             'filename': LOG_DIR / 'django.log',
             'maxBytes': 10 * 1024 * 1024,
             'backupCount': 7,
@@ -326,7 +326,7 @@ LOGGING = {
         },
         'operation_file': {
             'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
             'filename': LOG_DIR / 'operation.log',
             'maxBytes': 20 * 1024 * 1024,
             'backupCount': 15,
@@ -334,7 +334,7 @@ LOGGING = {
         },
         'task_file': {
             'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
             'filename': LOG_DIR / 'celery.log',
             'maxBytes': 10 * 1024 * 1024,
             'backupCount': 7,

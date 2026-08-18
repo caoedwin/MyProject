@@ -17,14 +17,31 @@
         :text-color="appStore.isDark ? '#e5eaf3' : '#303133'"
         active-text-color="#409EFF"
       >
-        <el-menu-item
-          v-for="item in topMenus"
-          :key="item.path"
-          :index="item.path"
-        >
-          <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
-          <span>{{ item.name }}</span>
-        </el-menu-item>
+        <template v-for="item in topMenus" :key="item.path">
+          <!-- 有子菜单：使用 el-sub-menu -->
+          <el-sub-menu
+            v-if="item.children && item.children.length"
+            :index="item.path || String(item.id)"
+            :teleported="false"
+          >
+            <template #title>
+              <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
+              <span>{{ item.name }}</span>
+            </template>
+            <el-menu-item
+              v-for="child in item.children"
+              :key="child.path"
+              :index="child.path"
+            >
+              <span>{{ child.name }}</span>
+            </el-menu-item>
+          </el-sub-menu>
+          <!-- 无子菜单：直接跳转 -->
+          <el-menu-item v-else :index="item.path">
+            <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
+            <span>{{ item.name }}</span>
+          </el-menu-item>
+        </template>
       </el-menu>
 
       <!-- 面包屑 -->
@@ -132,7 +149,12 @@ const breadcrumbItems = computed(() => {
 
 // 顶部菜单选中
 function handleTopMenuSelect(path) {
-  router.push(path)
+  const menu = topMenus.value.find(m => m.path === path)
+  if (menu && menu.is_external) {
+    window.open(path, '_blank', 'noopener')
+  } else {
+    router.push(path)
+  }
 }
 
 // 切换菜单布局
@@ -219,12 +241,14 @@ onUnmounted(() => {
   align-items: center;
   width: 100%;
   height: 100%;
+  overflow: visible;
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
   gap: 16px;
+  overflow: visible;
 }
 
 .trigger {
@@ -241,6 +265,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 20px;
+  overflow: visible;
 }
 
 .action-item {
@@ -265,5 +290,18 @@ onUnmounted(() => {
 
 :deep(.el-menu--horizontal) {
   border-bottom: none;
+}
+
+:deep(.el-badge) {
+  display: inline-flex;
+  align-items: center;
+  overflow: visible;
+}
+
+:deep(.el-badge__content) {
+  top: auto;
+  bottom: -2px;
+  transform: translate(50%, 0);
+  pointer-events: none;
 }
 </style>
