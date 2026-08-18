@@ -18,6 +18,8 @@ urlpatterns = [
     path('api/messaging/', include('messaging.urls')),
     # AI 对话
     path('api/ai/', include('aihub.urls')),
+    # 任务管理
+    path('api/task/', include('TaskManagement.urls')),
 
     # API 文档
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

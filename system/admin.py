@@ -9,6 +9,7 @@ from django.utils.html import format_html
 from app01.models import User
 from system.models import Menu, Role, UserRole, OperationLog, LoginLog
 from aihub.models import ChatSession, ChatMessage
+from TaskManagement.models import TaskCategory, Task, TaskApproval, TaskProgressRecord, TaskPerformance
 
 
 class RoleAdminForm(forms.ModelForm):
@@ -60,18 +61,73 @@ class RoleAdminForm(forms.ModelForm):
         fields = '__all__'
 
 
+class UserChangeForm(forms.ModelForm):
+    """用户编辑表单 - 角色多选（直观替代多条 UserRoleInline）"""
+    roles = forms.ModelMultipleChoiceField(
+        queryset=Role.objects.filter(status=True).order_by('name'),
+        required=False,
+        label='角色',
+        widget=admin.widgets.FilteredSelectMultiple('角色', False),
+        help_text='一个用户可拥有多个角色',
+    )
+
+    class Meta:
+        model = User
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            # 预填充当前用户已有的角色
+            self.initial['roles'] = UserRole.objects.filter(
+                user=self.instance
+            ).values_list('role_id', flat=True)
+
+
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ['username', 'nickname', 'phone', 'status', 'menu_mode', 'menu_collapsed', 'is_superuser', 'last_login']
+    list_display = ['username', 'nickname', 'role_list', 'phone', 'status', 'menu_mode', 'menu_collapsed', 'is_superuser', 'last_login']
     list_filter = ['status', 'is_superuser', 'menu_mode', 'gender']
     search_fields = ['username', 'nickname', 'phone', 'email']
     list_editable = ['status', 'menu_mode', 'menu_collapsed']
     fieldsets = UserAdmin.fieldsets + (
         ('扩展信息', {'fields': ('nickname', 'avatar', 'phone', 'gender', 'status',
                                 'remember_token', 'remember_token_expires', 'last_login_ip',
-                                'menu_mode', 'menu_collapsed')}),
+                                'menu_mode', 'menu_collapsed', 'roles')}),
     )
     filter_horizontal = UserAdmin.filter_horizontal
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('user_roles__role')
+
+    @admin.display(description='角色')
+    def role_list(self, obj):
+        roles = [ur.role.name for ur in obj.user_roles.all()]
+        return format_html(
+            '<span style="font-size:12px">{}</span>',
+            ' | '.join(roles) if roles else '-'
+        )
+
+    def get_form(self, request, obj=None, **kwargs):
+        """使用自定义表单，支持角色多选"""
+        kwargs['form'] = UserChangeForm
+        return super().get_form(request, obj, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        # 同步角色关联
+        if 'roles' in form.cleaned_data:
+            selected_roles = form.cleaned_data['roles']
+            current_role_ids = set(UserRole.objects.filter(user=obj).values_list('role_id', flat=True))
+            new_role_ids = {r.id for r in selected_roles}
+            # 删除取消的角色
+            to_remove = current_role_ids - new_role_ids
+            if to_remove:
+                UserRole.objects.filter(user=obj, role_id__in=to_remove).delete()
+            # 添加新角色
+            to_add = new_role_ids - current_role_ids
+            for role_id in to_add:
+                UserRole.objects.create(user=obj, role_id=role_id)
 
 
 @admin.register(Menu)
@@ -95,6 +151,16 @@ class RoleAdmin(admin.ModelAdmin):
 class UserRoleAdmin(admin.ModelAdmin):
     list_display = ['user', 'role', 'created_at']
     raw_id_fields = ['user', 'role']
+    readonly_fields = ['user', 'role', 'created_at']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return True  # 允许删除，但不能新增/编辑
 
 
 @admin.register(OperationLog)

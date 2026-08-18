@@ -1,0 +1,63 @@
+python3.14.7+django6.1+mysql+vue的框架开发一个前后端分离的新系统，django项目已经创建好了C:\djangoproject\MyProject，虚拟环境是C:\djangoproject\MyProject\Myprojectvenv\Scripts，mysql是DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'myproject',
+        'USER': 'edwin',
+        'PASSWORD': 'DCT@2019',
+        'HOST': '127.0.0.1',
+        'PORT': '3306'
+    },redis也装好的。
+系统的基础框架都已经搭建开发完成（由于有旧版本的python+django+mysql在同时运行，所以新版本mysql8.4是运行在docker上的）。
+
+新app的通用需求如下：
+一：models和admin
+1对于每一个模型，都需要有创建人，创建时间和更新时间（created_by = models.ForeignKey(
+        UserInfo,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name="创建者"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="更新时间")），如果有固定下拉菜单的最好使用choices=Customer_CHOICES，rowdata，如附件
+2还有工作逻辑种需要的数据有：
+二：view.py和url
+1view里面所有choices都要从models里面获取，再返回到前端，前端不要写死。
+三：前端数据录入页面
+1所有的下拉选项都需要可以输入匹配下拉项，因为下拉选项都很多。
+2如果有owner这种，要用穿梭框（例如：<label style="font-size: 16px;font-weight: bold;margin-left: 15px;" for="Owner">负责人</label>
+                 <el-autocomplete
+                          class="inline-input"
+                          v-model="Owner"
+                          ref="Owner"
+                          clearable
+                          :fetch-suggestions="querySearch"
+                          placeholder="请输入负责人名称筛选"
+                          @select="handleSelect"
+                        >
+                     <template slot-scope="{ item }">
+                         <div style="text-align: center">${ item.value }&nbsp;(${ item.number })</div>
+                     </template>
+                 </el-autocomplete>），无论多对多(modelsl里面是ManyToManyField)还是一对多还是一对一。
+3每个页面都需要有搜索，新增，模板下载，excel上传，导出，批量删除，修改这几个按钮和功能，且除了搜索都需要有权限的区分（后端返回的数据每条都带有一个canedit=true或者false）。批量删除和编辑都是多选框（<el-table-column type="selection" width="55" :selectable="checkSelectable" align="center"></el-table-column>），canedit时true的才能勾选，编辑时只能勾选一条，一条以上点击编辑按钮有提示。与后端的交互，都需要有成功，失败原因，以及如果不可覆盖，提示成功上传几条，重复几条，哪些是重复数据。编辑和新增用一个函数。
+4对于table的显示，前端需要有列设定按钮，用于客户选择显示哪些列内容，且需要分页显示，默认每页100条数据（<el-pagination
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="currentPage"
+                    :page-sizes="[20,50,100]"
+                    :page-size="pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="total"
+                    style="margin-top:20px; text-align:right;">
+                </el-pagination>）。导出的数据如果是models里面的数据需要和上传模板一致，方便导出的数据可以直接用于上传。
+四前端dashboard统计页面
+1.如果需要根据公式统计数据，既要显示统计表格，也要显示echart图表。如果需要by不同的维度（by时间，年份或者月份，by客户别等，看有多少一般看models里面有多少用choice的字段）
+
+基于以上原则：
+我现在要在这个系统下面开发一个子系统，创建一个新的app；
+最重要的要求是：请不要影响原来的基本框架和系统。
+1.新的app（子系统）就叫，TaskManagement。主要用于主管对员工（role就要由主管和员工的区分DQA_QM,DQA_PL，DQA_TE，也要有子系统的管理员和使用者的区分DQA_C38_TaskManagement_admin,DQA_C38_TaskManagement_users）的任务分发，管理，签核（由员工申请任务），进度管理，合并绩效考察等等。任务包括任务标题，任务描述，任务种类，优先级，难度等级，效益（部分任务种类有），负责人，参与人，开始时间，预计结束时间，实际结束时间，任务进度，任务状态，创建人，创建时间，更新时间，更新人等。
+2.要有by人员查看，统计任务的页面。除了管理员和主管其他人只能看到自己相关的（参与的）所有任务，并可以创建新的任务，送给某个主管审核。也可以对审核通过的任务，进度开始任务，和任务进度的编辑，提送主管验证。审核通过的任务员工无法编辑其他项目（除了进度，状态等）。
+3主管页面，查看所有员工的任务，签核，编辑任务
+4主管dashboard页面，任务Gant图，绩效gant图等（对于绩效暂时我没有好的想法，应该是类似于每个任务都有对应的积分，根据难度，紧急度，时间，主管分配等）
+5管理员和子系统管理员，可以查看编辑所有页面的，任务。并进行数据维护
+

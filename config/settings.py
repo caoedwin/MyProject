@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'tasks',          # Celery 异步 / 定时任务
     'messaging',      # Channels 消息推送
     'aihub',          # AI 能力集成
+    'TaskManagement',  # 任务管理子系统
 ]
 
 MIDDLEWARE = [
