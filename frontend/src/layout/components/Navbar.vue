@@ -2,7 +2,7 @@
   <div class="navbar">
     <div class="navbar-left">
       <!-- 折叠按钮（仅左侧菜单模式显示） -->
-      <el-icon class="trigger" v-if="appStore.menuMode === 'side'" @click="appStore.toggleCollapse()">
+      <el-icon class="trigger" v-if="appStore.menuMode === 'side'" @click="toggleCollapse">
         <Fold v-if="!appStore.menuCollapsed" />
         <Expand v-else />
       </el-icon>
@@ -117,7 +117,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -139,6 +139,12 @@ const messageStore = useMessageStore()
 
 const topMenus = computed(() => permissionStore.menus)
 const activeTopMenu = ref('')
+
+// 根据当前路由高亮顶部菜单
+watch(() => route.path, (path) => {
+  const matched = path.split('/').filter(Boolean)
+  activeTopMenu.value = matched.length > 0 ? `/${matched[0]}` : ''
+}, { immediate: true })
 
 // 面包屑
 const breadcrumbItems = computed(() => {
@@ -164,6 +170,17 @@ async function toggleMenuMode() {
   // 持久化到后端
   try {
     await import('@/api').then(m => m.updatePreferences({ menu_mode: newMode }))
+  } catch (e) {
+    // 持久化失败不影响使用
+  }
+}
+
+// 切换侧边栏折叠
+async function toggleCollapse() {
+  appStore.toggleCollapse()
+  // 持久化到后端
+  try {
+    await import('@/api').then(m => m.updatePreferences({ menu_collapsed: appStore.menuCollapsed }))
   } catch (e) {
     // 持久化失败不影响使用
   }

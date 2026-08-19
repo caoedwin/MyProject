@@ -5,6 +5,7 @@ import {
   login as loginApi, logout as logoutApi, getUserInfo,
   rememberLogin as rememberLoginApi,
 } from '@/api'
+import { useAppStore } from '@/store/app'
 
 const TOKEN_KEY = 'myproject_token'
 const REFRESH_TOKEN_KEY = 'myproject_refresh'
@@ -29,12 +30,25 @@ export const useUserStore = defineStore('user', () => {
     if (refresh) localStorage.setItem(REFRESH_TOKEN_KEY, refresh)
   }
 
+  // 应用账户级菜单偏好（菜单位置、是否收缩）
+  function applyMenuPreferences(user) {
+    if (!user) return
+    const appStore = useAppStore()
+    if (user.menu_mode) {
+      appStore.setMenuMode(user.menu_mode)
+    }
+    if (user.menu_collapsed !== undefined) {
+      appStore.setCollapsed(user.menu_collapsed)
+    }
+  }
+
   // 登录
   async function login(loginForm) {
     const res = await loginApi(loginForm)
     setToken(res.data.access, res.data.refresh)
     userInfo.value = res.data.user
     localStorage.setItem(USER_KEY, JSON.stringify(res.data.user))
+    applyMenuPreferences(res.data.user)
 
     // 记住密码：保存 remember_token 到 Cookie（比 localStorage 更安全，可设过期）
     if (loginForm.rememberMe && res.data.remember_token) {
@@ -54,6 +68,7 @@ export const useUserStore = defineStore('user', () => {
       setToken(res.data.access, res.data.refresh)
       userInfo.value = res.data.user
       localStorage.setItem(USER_KEY, JSON.stringify(res.data.user))
+      applyMenuPreferences(res.data.user)
       return true
     } catch (e) {
       Cookies.remove(REMEMBER_KEY)
@@ -67,6 +82,7 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = res.data
     roles.value = res.data.roles || []
     localStorage.setItem(USER_KEY, JSON.stringify(res.data))
+    applyMenuPreferences(res.data)
     return res.data
   }
 
@@ -93,6 +109,9 @@ export const useUserStore = defineStore('user', () => {
     }
     resetState()
     Cookies.remove(REMEMBER_KEY)
+    // 重置权限路由，确保下个用户登录时重新生成菜单
+    const { usePermissionStore } = await import('@/store/permission')
+    usePermissionStore().reset()
   }
 
   function resetState() {
@@ -111,5 +130,6 @@ export const useUserStore = defineStore('user', () => {
     isLogin, isAdmin,
     setToken, login, tryRememberLogin, fetchUserInfo,
     setPermissions, hasPermission, logout, resetState,
+    applyMenuPreferences,
   }
 })

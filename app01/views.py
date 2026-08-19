@@ -107,11 +107,15 @@ class UserInfoView(viewsets.GenericViewSet):
         serializer = UpdatePreferenceSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = request.user
+        update_fields = []
         if 'menu_mode' in serializer.validated_data:
             user.menu_mode = serializer.validated_data['menu_mode']
+            update_fields.append('menu_mode')
         if 'menu_collapsed' in serializer.validated_data:
             user.menu_collapsed = serializer.validated_data['menu_collapsed']
-        user.save(update_fields=['menu_mode', 'menu_collapsed'])
+            update_fields.append('menu_collapsed')
+        if update_fields:
+            user.save(update_fields=update_fields)
         return Response(ok(UserInfoSerializer(user).data, msg='偏好已更新'))
 
     @action(detail=False, methods=['post'], url_path='password')

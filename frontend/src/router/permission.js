@@ -30,6 +30,9 @@ router.beforeEach(async (to, from, next) => {
       // 拉取用户信息（防止刷新丢失）
       if (!userStore.userInfo) {
         await userStore.fetchUserInfo()
+      } else {
+        // 用户信息已缓存，仍需应用账户级菜单偏好（覆盖设备 localStorage）
+        userStore.applyMenuPreferences(userStore.userInfo)
       }
       // 生成动态路由
       const dynamicRoutes = await permissionStore.generateRoutes()

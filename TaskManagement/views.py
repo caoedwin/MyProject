@@ -74,7 +74,7 @@ def _can_edit_task(user, task):
 
 
 def _annotate_can_edit(user, tasks):
-    """为任务列表中的每条记录标注 can_edit 字段"""
+    """为任务列表中的每条记录标注 can_edit / is_creator / is_owner / is_supervisor 字段"""
     result = []
     is_admin = _can_edit_all(user)
     is_supervisor = _is_supervisor(user)
@@ -88,6 +88,9 @@ def _annotate_can_edit(user, tasks):
                 task.owner_id == user.id or
                 task.participants.filter(id=user.id).exists()
             )
+        data['is_creator'] = (task.created_by_id == user.id)
+        data['is_owner'] = (task.owner_id == user.id)
+        data['is_supervisor'] = is_admin or is_supervisor
         result.append(data)
     return result
 
@@ -99,8 +102,19 @@ class TaskCategoryViewSet(viewsets.ModelViewSet):
     """任务种类 CRUD"""
     queryset = TaskCategory.objects.all()
     serializer_class = TaskCategorySerializer
-    permission_classes = [IsAuthenticated, HasPermission]
-    permission_required = 'TaskManagement:category'
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        """列表查看对所有人开放，增删改需要管理员权限"""
+        if self.action in ('list', 'retrieve', 'choices'):
+            return [IsAuthenticated()]
+        return [IsAuthenticated(), HasPermission()]
+
+    @property
+    def permission_required(self):
+        if self.action in ('create', 'update', 'partial_update', 'destroy'):
+            return 'TaskManagement:category'
+        return None
 
     def get_queryset(self):
         qs = TaskCategory.objects.all()
@@ -252,12 +266,12 @@ class TaskViewSet(viewsets.ModelViewSet):
     # ---------- 审批 ----------
     @action(detail=True, methods=['post'])
     def submit_approval(self, request, pk=None):
-        """提交审核（员工 -> 主管）"""
+        """提交审核（仅任务的创建者可提交）"""
         task = self.get_object()
         if task.status not in (Task.Status.DRAFT, Task.Status.REJECTED):
             return Response(fail('当前状态不可提交审核', code=400))
-        if not _can_edit_task(request.user, task):
-            return Response(fail('无权操作', code=403))
+        if task.created_by_id != request.user.id:
+            return Response(fail('只有任务创建者才能提交审核', code=403))
         approver_id = request.data.get('approver_id')
         if not approver_id:
             return Response(fail('请选择审批人', code=400))
@@ -722,4 +736,11 @@ class TaskStatsViewSet(viewsets.GenericViewSet):
             role__code='DQA_QM'
         ).values_list('user_id', flat=True)
         users = User.objects.filter(id__in=qm_user_ids, status=1)
+        return Response(ok(UserBriefSerializer(users, many=True).data))
+
+    @action(detail=False, methods=['get'])
+    def owners(self, request):
+        """获取任务负责人列表（去重）"""
+        owner_ids = Task.objects.exclude(owner__isnull=True).values_list('owner_id', flat=True).distinct()
+        users = User.objects.filter(id__in=owner_ids, status=1)
         return Response(ok(UserBriefSerializer(users, many=True).data))

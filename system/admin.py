@@ -2,6 +2,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
 from django.contrib.auth.models import Permission
 from django.db.models import Q
 from django.utils.html import format_html
@@ -61,7 +62,7 @@ class RoleAdminForm(forms.ModelForm):
         fields = '__all__'
 
 
-class UserChangeForm(forms.ModelForm):
+class UserChangeForm(DjangoUserChangeForm):
     """用户编辑表单 - 角色多选（直观替代多条 UserRoleInline）"""
     roles = forms.ModelMultipleChoiceField(
         queryset=Role.objects.filter(status=True).order_by('name'),
@@ -70,8 +71,14 @@ class UserChangeForm(forms.ModelForm):
         widget=admin.widgets.FilteredSelectMultiple('角色', False),
         help_text='一个用户可拥有多个角色',
     )
+    new_password = forms.CharField(
+        label='新密码',
+        required=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
+        help_text='留空则不修改密码。密码需至少8位，不能纯数字。',
+    )
 
-    class Meta:
+    class Meta(DjangoUserChangeForm.Meta):
         model = User
         fields = '__all__'
 
@@ -90,10 +97,15 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ['status', 'is_superuser', 'menu_mode', 'gender']
     search_fields = ['username', 'nickname', 'phone', 'email']
     list_editable = ['status', 'menu_mode', 'menu_collapsed']
-    fieldsets = UserAdmin.fieldsets + (
+    fieldsets = (
+        (None, {'fields': ('username',)}),
+        ('个人信息', {'fields': ('first_name', 'last_name', 'email')}),
+        ('密码', {'fields': ('new_password',)}),
+        ('权限', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('扩展信息', {'fields': ('nickname', 'avatar', 'phone', 'gender', 'status',
                                 'remember_token', 'remember_token_expires', 'last_login_ip',
                                 'menu_mode', 'menu_collapsed', 'roles')}),
+        ('重要日期', {'fields': ('last_login', 'date_joined')}),
     )
     filter_horizontal = UserAdmin.filter_horizontal
 
@@ -114,6 +126,9 @@ class CustomUserAdmin(UserAdmin):
         return super().get_form(request, obj, **kwargs)
 
     def save_model(self, request, obj, form, change):
+        new_password = form.cleaned_data.get('new_password')
+        if new_password:
+            obj.set_password(new_password)
         super().save_model(request, obj, form, change)
         # 同步角色关联
         if 'roles' in form.cleaned_data:

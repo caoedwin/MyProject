@@ -128,25 +128,33 @@ class DashboardViewSet(viewsets.GenericViewSet):
     def stats(self, request, *args, **kwargs):
         """汇总统计：用户数、未读消息、今日操作、AI 对话"""
         from django.contrib.auth import get_user_model
-        from messaging.models import Message
+        from messaging.models import Message, MessageRead
         from aihub.models import ChatSession
 
         User = get_user_model()
         today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
-        # 用户总数（排除超级管理员可选，这里保留全部）
+        # 用户总数
         user_count = User.objects.count()
 
-        # 当前用户的未读消息数（recipient 为当前用户且未读）
-        unread_count = Message.objects.filter(
+        # 未读消息 = 未读点对点 + 未读广播
+        unread_direct = Message.objects.filter(
             recipient=request.user, is_read=False
         ).count()
+        all_broadcasts = Message.objects.filter(recipient__isnull=True)
+        read_broadcast_ids = MessageRead.objects.filter(
+            user=request.user
+        ).values_list('message_id', flat=True)
+        unread_broadcast = all_broadcasts.exclude(id__in=read_broadcast_ids).count()
+        unread_count = unread_direct + unread_broadcast
 
-        # 今日操作日志数
-        today_ops = OperationLog.objects.filter(created_at__gte=today_start).count()
+        # 当前用户今日操作日志数
+        today_ops = OperationLog.objects.filter(
+            user=request.user, created_at__gte=today_start
+        ).count()
 
-        # AI 对话会话总数
-        ai_sessions = ChatSession.objects.count()
+        # 当前用户的 AI 对话会话数
+        ai_sessions = ChatSession.objects.filter(user=request.user).count()
 
         data = {
             'user_count': user_count,

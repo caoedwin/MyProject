@@ -131,11 +131,11 @@
             <el-tag :type="statusTagType(row.status)" :effect="statusEffect(row.status)" size="small">{{ row.status_display }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="start_date" label="开始时间" width="110"
+        <el-table-column prop="start_date" label="开始时间" width="140"
           v-if="visibleColumns.includes('start_date')" />
-        <el-table-column prop="expected_end_date" label="预计结束" width="110"
+        <el-table-column prop="expected_end_date" label="预计结束" width="140"
           v-if="visibleColumns.includes('expected_end_date')" />
-        <el-table-column prop="actual_end_date" label="实际结束" width="110"
+        <el-table-column prop="actual_end_date" label="实际结束" width="140"
           v-if="visibleColumns.includes('actual_end_date')" />
         <el-table-column prop="created_by_name" label="创建人" width="100"
           v-if="visibleColumns.includes('created_by_name')" />
@@ -146,17 +146,15 @@
             <el-button link type="primary" @click="handleView(row)">详情</el-button>
             <el-button link type="primary" :disabled="!row.can_edit" @click="handleEdit(row)">编辑</el-button>
             <el-button link type="danger" :disabled="!row.can_edit" @click="handleDelete(row)">删除</el-button>
-            <template v-if="row.can_edit">
-              <!-- 草稿/已驳回 -> 提交审核 -->
-              <el-button v-if="['draft','rejected'].includes(row.status)" link type="warning" @click="showSubmitApproval(row)">提交审核</el-button>
-              <!-- 待审核 -> 审批通过/驳回 -->
-              <el-button v-if="row.status === 'pending'" link type="success" @click="handleApproveInline(row)">通过</el-button>
-              <el-button v-if="row.status === 'pending'" link type="danger" @click="showRejectInline(row)">驳回</el-button>
-              <!-- 审核通过/进行中 -> 更新进度 -->
-              <el-button v-if="['approved','in_progress'].includes(row.status)" link type="primary" @click="showProgressInline(row)">进度</el-button>
-              <!-- 待验证 -> 验证通过 -->
-              <el-button v-if="row.status === 'pending_verify'" link type="success" @click="handleVerifyInline(row)">验证通过</el-button>
-            </template>
+            <!-- 草稿/已驳回 -> 提交审核（仅创建者） -->
+            <el-button v-if="row.is_creator && ['draft','rejected'].includes(row.status)" link type="warning" @click="showSubmitApproval(row)">提交审核</el-button>
+            <!-- 待审核 -> 审批通过/驳回（仅主管） -->
+            <el-button v-if="row.is_supervisor && row.status === 'pending'" link type="success" @click="handleApproveInline(row)">通过</el-button>
+            <el-button v-if="row.is_supervisor && row.status === 'pending'" link type="danger" @click="showRejectInline(row)">驳回</el-button>
+            <!-- 审核通过/进行中 -> 更新进度（仅创建者/负责人） -->
+            <el-button v-if="(row.is_creator || row.is_owner) && ['approved','in_progress'].includes(row.status)" link type="primary" @click="showProgressInline(row)">进度</el-button>
+            <!-- 待验证 -> 验证通过（仅主管） -->
+            <el-button v-if="row.is_supervisor && row.status === 'pending_verify'" link type="success" @click="handleVerifyInline(row)">验证通过</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -218,12 +216,17 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="开始时间">
-              <el-date-picker v-model="formData.start_date" type="date" placeholder="选择日期" style="width:100%" value-format="YYYY-MM-DD" />
+              <el-date-picker v-model="formData.start_date" type="datetime" placeholder="选择日期时间" style="width:100%" value-format="YYYY-MM-DD HH:mm" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="预计结束时间">
-              <el-date-picker v-model="formData.expected_end_date" type="date" placeholder="选择日期" style="width:100%" value-format="YYYY-MM-DD" />
+              <el-date-picker v-model="formData.expected_end_date" type="datetime" placeholder="选择日期时间" style="width:100%" value-format="YYYY-MM-DD HH:mm" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12" v-if="isEdit">
+            <el-form-item label="实际结束时间">
+              <el-date-picker v-model="formData.actual_end_date" type="datetime" placeholder="选择日期时间" style="width:100%" value-format="YYYY-MM-DD HH:mm" />
             </el-form-item>
           </el-col>
           <el-col :span="24" v-if="isEdit">
@@ -335,7 +338,7 @@ import { Plus, Download, Upload, Document, Delete, Edit, Setting } from '@elemen
 import {
   listTasks, createTask, updateTask, deleteTask, batchDeleteTasks,
   listTaskCategories, downloadTaskTemplate, importTasksExcel, exportTasksExcel,
-  searchUsers, submitApproval, approveTask, rejectTask, updateTaskProgress, verifyTask, getQMUsers,
+  searchUsers, submitApproval, approveTask, rejectTask, updateTaskProgress, verifyTask, getQMUsers, getTaskOwners,
 } from '@/api'
 
 const router = useRouter()
@@ -364,6 +367,20 @@ const rejectComment = ref('')
 const approvalForm = reactive({ approverId: [] })
 const progressFormInline = reactive({ progress: 0, description: '' })
 const qmUsers = ref([])
+
+// 搜索栏负责人下拉选项（从任务中取实际负责人去重）
+const ownerOptions = ref([])
+
+async function loadOwnerOptions() {
+  try {
+    const res = await getTaskOwners()
+    ownerOptions.value = (res.data || []).map(u => ({
+      value: u.username,
+      number: u.id,
+      nickname: u.nickname,
+    }))
+  } catch (e) { /* ignore */ }
+}
 
 // 搜索表单
 const searchForm = reactive({
@@ -533,16 +550,10 @@ function handleOwnerTransferChange(value, direction, movedKeys) {
 
 // 搜索栏：负责人 autocomplete
 async function querySearchOwner(queryString, cb) {
-  if (!queryString) { cb([]); return }
-  try {
-    const res = await searchUsers({ keyword: queryString })
-    const users = (res.data || []).map(u => ({
-      value: u.username,
-      number: u.id,
-      nickname: u.nickname,
-    }))
-    cb(users)
-  } catch (e) { cb([]) }
+  const results = queryString
+    ? ownerOptions.value.filter(u => u.value.toLowerCase().includes(queryString.toLowerCase()))
+    : ownerOptions.value
+  cb(results)
 }
 
 function handleOwnerSelect(item) {
@@ -851,6 +862,7 @@ async function downloadTemplate() {
 onMounted(() => {
   fetchCategories()
   fetchList()
+  loadOwnerOptions()
 })
 </script>
 

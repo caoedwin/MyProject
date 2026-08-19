@@ -216,3 +216,7 @@ export function searchUsers(params) {
 export function getQMUsers() {
   return request({ url: '/task/stats/qm_users', method: 'get' })
 }
+
+export function getTaskOwners() {
+  return request({ url: '/task/stats/owners', method: 'get' })
+}

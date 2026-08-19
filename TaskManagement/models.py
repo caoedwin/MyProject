@@ -95,9 +95,9 @@ class Task(models.Model):
         related_name='participated_tasks',
         verbose_name='参与人'
     )
-    start_date = models.DateField('开始时间', null=True, blank=True)
-    expected_end_date = models.DateField('预计结束时间', null=True, blank=True)
-    actual_end_date = models.DateField('实际结束时间', null=True, blank=True)
+    start_date = models.DateTimeField('开始时间', null=True, blank=True)
+    expected_end_date = models.DateTimeField('预计结束时间', null=True, blank=True)
+    actual_end_date = models.DateTimeField('实际结束时间', null=True, blank=True)
     progress = models.IntegerField('任务进度', default=0,
         help_text='0-100 百分比')
     status = models.CharField(

@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, markRaw } from 'vue'
+import { ref, onMounted, onActivated, watch, markRaw } from 'vue'
 import { useUserStore } from '@/store/user'
 import { useAppStore } from '@/store/app'
 import request from '@/utils/request'
@@ -73,12 +73,17 @@ const fetchStats = async () => {
       card.value = (val === undefined || val === null) ? 0 : val
     })
   } catch (e) {
-    // 失败时保持 - 占位
     console.error('获取统计数据失败', e)
   }
 }
 
 onMounted(fetchStats)
+// keep-alive 缓存后重新激活时刷新数据
+onActivated(fetchStats)
+// 切换用户后重新拉取数据（仅当仍处于登录状态时）
+watch(() => userStore.userInfo?.username, (newVal) => {
+  if (newVal) fetchStats()
+})
 </script>
 
 <style scoped lang="scss">
