@@ -37,6 +37,12 @@ export const staticRoutes = [
         component: () => import('@/views/profile/index.vue'),
         meta: { title: '个人中心', hidden: true },
       },
+      {
+        path: 'task/detail/:id',
+        name: 'TaskDetail',
+        component: () => import('@/views/task/detail.vue'),
+        meta: { title: '任务详情', hidden: true },
+      },
     ],
   },
 ]
